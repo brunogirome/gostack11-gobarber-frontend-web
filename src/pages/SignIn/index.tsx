@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useContext } from 'react';
+import React, { useRef, useCallback } from 'react';
 import { FiLogIn, FiMail, FiLock } from 'react-icons/fi';
 import { FormHandles } from '@unform/core';
 import { Form } from '@unform/web';
@@ -10,7 +10,7 @@ import Input from '../../components/Input';
 import Button from '../../components/Button';
 
 import { Container, Content, Background } from './styles';
-import { AuthContext } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 interface registerData {
   email: string;
@@ -18,9 +18,7 @@ interface registerData {
 }
 
 const SignIn: React.FC = () => {
-  const { user, signIn } = useContext(AuthContext);
-
-  console.log(user);
+  const { user, signIn } = useAuth();
 
   const formRef = useRef<FormHandles>(null);
 
