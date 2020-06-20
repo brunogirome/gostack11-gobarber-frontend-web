@@ -10,7 +10,8 @@ import Input from '../../components/Input';
 import Button from '../../components/Button';
 
 import { Container, Content, Background } from './styles';
-import { useAuth } from '../../hooks/AuthContext';
+import { useAuth } from '../../hooks/auth';
+import { useToast } from '../../hooks/toast';
 
 interface registerData {
   email: string;
@@ -18,7 +19,9 @@ interface registerData {
 }
 
 const SignIn: React.FC = () => {
-  const { user, signIn } = useAuth();
+  const { signIn } = useAuth();
+
+  const { addToast } = useToast();
 
   const formRef = useRef<FormHandles>(null);
 
@@ -38,16 +41,18 @@ const SignIn: React.FC = () => {
           abortEarly: false,
         });
 
-        signIn(SignInData);
+        await signIn(SignInData);
       } catch (error) {
         if (error instanceof Yup.ValidationError) {
           const errors = getValidationErrors(error);
 
           formRef.current?.setErrors(errors);
         }
+
+        addToast();
       }
     },
-    [signIn],
+    [signIn, addToast],
   );
   return (
     <Container>
