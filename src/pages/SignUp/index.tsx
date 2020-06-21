@@ -3,6 +3,8 @@ import { FiArrowLeft, FiUser, FiMail, FiLock } from 'react-icons/fi';
 import { FormHandles } from '@unform/core';
 import { Form } from '@unform/web';
 import * as Yup from 'yup';
+import { Link } from 'react-router-dom';
+
 import getValidationErrors from '../../utils/getValidationErrors';
 
 import logoImg from '../../assets/logo.svg';
@@ -60,10 +62,10 @@ const SignUp: React.FC = () => {
           />
           <Button type="submit">Register</Button>
         </Form>
-        <a href="register">
+        <Link to="/">
           <FiArrowLeft />
           Back to login
-        </a>
+        </Link>
       </Content>
     </Container>
   );
