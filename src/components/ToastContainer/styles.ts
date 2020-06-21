@@ -45,17 +45,17 @@ export const Toast = styled.div<ToastProps>`
 
   > svg {
     margin: 4px 12px 0 0;
+  }
 
-    div {
-      flex: 1;
+  div {
+    flex: 1;
 
-      p {
-        margin-top: 4px;
-        opacity: 0.8;
+    p {
+      margin-top: 4px;
+      opacity: 0.8;
 
-        font-size: 14px;
-        line-height: 20px;
-      }
+      font-size: 14px;
+      line-height: 20px;
     }
   }
 
