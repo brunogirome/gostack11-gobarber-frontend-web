@@ -1,4 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { isToday, format, parseISO } from 'date-fns';
+import enUS from 'date-fns/locale/en-US';
 import DayPicker, { DayModifiers } from 'react-day-picker';
 import 'react-day-picker/lib/style.css';
 
@@ -25,6 +27,16 @@ interface MonthAvailabilityItem {
   available: boolean;
 }
 
+interface Appointment {
+  id: string;
+  date: string;
+  hourFormatted: string;
+  user: {
+    name: string;
+    avatar_url: string;
+  };
+}
+
 const Dashboard: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -32,6 +44,8 @@ const Dashboard: React.FC = () => {
   const [monthAvailability, setMonthAvailability] = useState<
     MonthAvailabilityItem[]
   >([]);
+
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
 
   const { signOut, user } = useAuth();
 
@@ -58,6 +72,25 @@ const Dashboard: React.FC = () => {
       });
   }, [currentMonth, user.id]);
 
+  useEffect(() => {
+    api
+      .get<Appointment[]>('/appointments/me', {
+        params: {
+          year: selectedDate.getFullYear(),
+          month: selectedDate.getMonth() + 1,
+          day: selectedDate.getDate(),
+        },
+      })
+      .then(response => {
+        const appointmentsFormatted = response.data.map(appointment => ({
+          ...appointment,
+          hourFormatted: format(parseISO(appointment.date), 'HH:mm'),
+        }));
+
+        setAppointments(appointmentsFormatted);
+      });
+  }, [selectedDate]);
+
   const disabledDays = useMemo(() => {
     const dates = monthAvailability
       .filter(monthDay => monthDay.available === false)
@@ -70,6 +103,30 @@ const Dashboard: React.FC = () => {
 
     return dates;
   }, [currentMonth, monthAvailability]);
+
+  const selectedDayAsText = useMemo(() => {
+    return format(selectedDate, "MMMM, 'day' dd", {
+      locale: enUS,
+    });
+  }, [selectedDate]);
+
+  const selectedWeekDayAsText = useMemo(() => {
+    return format(selectedDate, 'cccc', {
+      locale: enUS,
+    });
+  }, [selectedDate]);
+
+  const morningAppointments = useMemo(() => {
+    return appointments.filter(appointment => {
+      return parseISO(appointment.date).getHours() < 12;
+    });
+  }, [appointments]);
+
+  const afternoonAppointments = useMemo(() => {
+    return appointments.filter(appointment => {
+      return parseISO(appointment.date).getHours() >= 12;
+    });
+  }, [appointments]);
 
   return (
     <Container>
@@ -94,9 +151,9 @@ const Dashboard: React.FC = () => {
         <Schedule>
           <h1>Schedule</h1>
           <p>
-            <span>Today</span>
-            <span>Day 06</span>
-            <span>Monday</span>
+            {isToday(selectedDate) && <span>Today</span>}
+            <span>{selectedDayAsText}</span>
+            <span>{selectedWeekDayAsText}</span>
           </p>
 
           <NextAppointment>
@@ -118,69 +175,43 @@ const Dashboard: React.FC = () => {
           <Section>
             <strong>Morning</strong>
 
-            <Appointment>
-              <span>
-                <FiClock />
-                08:33
-              </span>
+            {morningAppointments.map(appointment => (
+              <Appointment key={appointment.id}>
+                <span>
+                  <FiClock />
+                  {appointment.hourFormatted}
+                </span>
 
-              <div>
-                <img
-                  src="https://avatarfiles.alphacoders.com/156/thumb-156175.png"
-                  alt="Oreimo avatar"
-                />
+                <div>
+                  <img
+                    src={appointment.user.avatar_url}
+                    alt={appointment.user.name}
+                  />
 
-                <strong>Ana Flávia</strong>
-              </div>
-            </Appointment>
-            <Appointment>
-              <span>
-                <FiClock />
-                08:33
-              </span>
-
-              <div>
-                <img
-                  src="https://avatarfiles.alphacoders.com/156/thumb-156175.png"
-                  alt="Oreimo avatar"
-                />
-
-                <strong>Ana Flávia</strong>
-              </div>
-            </Appointment>
+                  <strong>{appointment.user.name}</strong>
+                </div>
+              </Appointment>
+            ))}
 
             <strong>Afternoon</strong>
 
-            <Appointment>
-              <span>
-                <FiClock />
-                08:33
-              </span>
+            {afternoonAppointments.map(appointment => (
+              <Appointment key={appointment.id}>
+                <span>
+                  <FiClock />
+                  {appointment.hourFormatted}
+                </span>
 
-              <div>
-                <img
-                  src="https://avatarfiles.alphacoders.com/156/thumb-156175.png"
-                  alt="Oreimo avatar"
-                />
+                <div>
+                  <img
+                    src={appointment.user.avatar_url}
+                    alt={appointment.user.name}
+                  />
 
-                <strong>Ana Flávia</strong>
-              </div>
-            </Appointment>
-            <Appointment>
-              <span>
-                <FiClock />
-                08:33
-              </span>
-
-              <div>
-                <img
-                  src="https://avatarfiles.alphacoders.com/156/thumb-156175.png"
-                  alt="Oreimo avatar"
-                />
-
-                <strong>Ana Flávia</strong>
-              </div>
-            </Appointment>
+                  <strong>{appointment.user.name}</strong>
+                </div>
+              </Appointment>
+            ))}
           </Section>
         </Schedule>
         <Calendar>
